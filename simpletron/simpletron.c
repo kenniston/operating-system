@@ -19,6 +19,7 @@ void halt() {
 }
 
 void op_read(int position) {
+    printf("[%02d] ? Data = ", position);
     scanf("%d", &mem[position]);
 }
 
@@ -43,11 +44,11 @@ void op_sub(int position) {
 }
 
 void op_div(int position) {
-    if (acc == 0) {
-        printf("error: div by zero.\n");
+    if (mem[position] == 0) {
+        fprintf(stderr, "error: div by zero.\n");
         halt();
     }
-    acc = mem[position] / acc;
+    acc /= mem[position];
 }
 
 void op_mul(int position) {
@@ -99,24 +100,24 @@ void bootloader(char *file) {
     } else {
         int command;
         do {
-             scanf("%d", &command);
-             if (command <= -9999 || ip == MEMORY_SIZE) {
+            printf("[%02d] ? Command = ", ip);
+            scanf("%d", &command);
+            if (command <= -9999 || ip == MEMORY_SIZE) {
                 break;
-             }
-    
-             mem[ip++] = command;
+            }
+            mem[ip++] = command;
         } while (true);
    }
-    stack_size = MEMORY_SIZE - ip;
-    code_size = ip;
-    ip = 0;
+   stack_size = MEMORY_SIZE - ip;
+   code_size = ip;
+   ip = 0;
      
 #ifdef DEBUG
-    printf("\n\n");
-    printf("Program Loaded!\n");
-    printf("Instruction Count: %d\n", code_size);
-    printf("Stack Size: %d\n", stack_size);
-    printf("Total Memory: %d\n\n", MEMORY_SIZE);
+   printf("\n\n");
+   printf("Program Loaded!\n");
+   printf("Instruction Count: %d\n", code_size);
+   printf("Stack Size: %d\n", stack_size);
+   printf("Total Memory: %d\n\n", MEMORY_SIZE);
 #endif
 }
 
@@ -175,10 +176,24 @@ void run() {
 
 }
 
+void start() {
+    printf("*** Bem vindo ao Simpletron!                            ***\n");
+    printf("*** Por favor insira uma instrução (ou data word)       ***\n");
+    printf("*** por vez em seu programa. Eu vou digitar o número    ***\n");
+    printf("*** o número de alocação e o ponto de interrogação (?). ***\n");
+    printf("*** Então você digita a palavra para a alocação.        ***\n");
+    printf("*** Digite o número -9999 para parar indicar o fim do   ***\n");
+    printf("*** seu programa.                                       ***\n\n");
+}
+
 int main(int argc, char *args[]) {
     char *file = argc > 1 ? args[1] : NULL;
 
     memset(mem, -1, MEMORY_SIZE * sizeof(int));
+    
+    if (!file) {
+        start();
+    }
 
     bootloader(file);
     run();
