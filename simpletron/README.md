@@ -23,8 +23,10 @@ $ sudo apt install build-essential
 Build and Run Simpletron:
 
 ```sh
-gcc simpletron.c -o simpletron && ./simpletron
+$ gcc simpletron.c -o simpletron && ./simpletron
 ```
+
+<br/>
 
 ## Simpletron Machine Language (SML)
 Below are the instruction available on the SML:
