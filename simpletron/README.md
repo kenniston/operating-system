@@ -1,4 +1,4 @@
-# ** Simpletron **
+# **Simpletron**
 
 ***Simpletron*** is simple machine which run simple programs with a defined number of instructions.
 You can write programs using the ***Simpletron Machine Language (SML)*** and load these programs
@@ -61,5 +61,5 @@ Below are the instruction available on the SML:
     2197    // Store the result
     1197    // Write the result on screen
     4300    // Quit the program
-    -9999   // End Program
+   -9999    // End Program
 ```
