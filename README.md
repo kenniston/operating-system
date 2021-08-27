@@ -1,6 +1,6 @@
 # **Simpletron**
 
-***Simpletron*** is simple machine that executes simple programs with a defined number of instructions.
+***Simpletron*** is simple machine which run simple programs with a defined number of instructions.
 You can write programs using the ***Simpletron Machine Language (SML)*** and load these programs
 on the Simpletron.
 
