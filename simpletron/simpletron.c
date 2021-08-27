@@ -5,14 +5,38 @@
 #include <stdbool.h>
 #include <string.h>
 
+// Input and Ouput Operations
+#define READ 10
+#define WRITE 11
+
+// Load and Store operations
+#define LOAD 20
+#define STORE 21
+
+// Arithmetic operations
+#define ADD 30
+#define SUBTRACT 31
+#define DIVIDE 32
+#define MULTIPLY 33
+
+// Transfer of Control operations
+#define BRANCH 40
+#define BRANCHNEG 41
+#define BRANCHZERO 42
+#define HALT 43
+
+// End of Program instruction
+#define END_PROGRAM -9999
+
+// Simpletron Memory Size
 #define MEMORY_SIZE 100
 
-int mem[MEMORY_SIZE] = {-1};
-int acc = -1;
-int ip = 0;
-int stack_size;
-bool running = true;
-int code_size;
+int mem[MEMORY_SIZE] = {-1};    // Simpletron memory
+int acc = -1;                   // accumulator register
+int ip = 0;                     // instruction pointer register
+int stack_size;                 // Simpletron stack size
+int code_size;                  // program size in memory
+bool running = true;            
 
 void halt() {
     running = false;
@@ -71,6 +95,11 @@ void op_branch_zero(int position) {
     }
 }
 
+void invalid_instruction(int position, int instruction) {
+    printf("*** Invalid instruction (%04d) at address [%02d]. ***\n*** Simpletron execution terminated!            ***\n\n", instruction, position);
+    halt();
+}
+
 void load_file(char *file) {
     FILE *f;
     f = fopen(file, "r");
@@ -84,7 +113,7 @@ void load_file(char *file) {
     char *line;
     while ((read = getline(&line, &len, f)) != -1) {
         int command = atoi(line);
-        if (command <= -9999 || ip == MEMORY_SIZE) {
+        if (command <= END_PROGRAM || ip == MEMORY_SIZE) {
             break;
         }
         mem[ip++] = command;
@@ -102,7 +131,7 @@ void bootloader(char *file) {
         do {
             printf("[%02d] ? Command = ", ip);
             scanf("%d", &command);
-            if (command <= -9999 || ip == MEMORY_SIZE) {
+            if (command <= END_PROGRAM || ip == MEMORY_SIZE) {
                 break;
             }
             mem[ip++] = command;
@@ -155,35 +184,35 @@ void run() {
         int vl = command % 100;
 
         switch (op) {
-            case 10: op_read(vl); break;
-            case 11: op_write(vl); break;
-            case 20: op_load(vl); break;
-            case 21: op_store(vl); break;
-            case 30: op_add(vl); break;
-            case 31: op_sub(vl); break;
-            case 32: op_div(vl); break;
-            case 33: op_mul(vl); break;
-            case 40: op_branch(vl); break;
-            case 41: op_branch_neg(vl); break;
-            case 42: op_branch_zero(vl); break;
-            case 43: halt(); break;
+            case READ: op_read(vl); break;
+            case WRITE: op_write(vl); break;
+            case LOAD: op_load(vl); break;
+            case STORE: op_store(vl); break;
+            case ADD: op_add(vl); break;
+            case SUBTRACT: op_sub(vl); break;
+            case DIVIDE: op_div(vl); break;
+            case MULTIPLY: op_mul(vl); break;
+            case BRANCH: op_branch(vl); break;
+            case BRANCHNEG: op_branch_neg(vl); break;
+            case BRANCHZERO: op_branch_zero(vl); break;
+            case HALT: halt(); break;
+            default: invalid_instruction(ip-1, command);
         }
 
         if (command == code_size -1) {
             halt();
         }
     }
-
 }
 
 void start() {
-    printf("*** Bem vindo ao Simpletron!                            ***\n");
-    printf("*** Por favor insira uma instrução (ou data word)       ***\n");
-    printf("*** por vez em seu programa. Eu vou digitar o número    ***\n");
-    printf("*** o número de alocação e o ponto de interrogação (?). ***\n");
-    printf("*** Então você digita a palavra para a alocação.        ***\n");
-    printf("*** Digite o número -9999 para parar indicar o fim do   ***\n");
-    printf("*** seu programa.                                       ***\n\n");
+    printf("*** Welcome to Simpletron!                                ***\n");
+    printf("*** Please insert one instruction (or data word)          ***\n");
+    printf("*** at a time into your program. I'll type the location   ***\n");
+    printf("*** number and a question mark (?) and then you type    ***\n");
+    printf("*** the instruction for the allocation.                   ***\n");
+    printf("*** Type the -9999 number to indicate the end of your     ***\n");
+    printf("*** program.                                              ***\n\n");
 }
 
 int main(int argc, char *args[]) {
