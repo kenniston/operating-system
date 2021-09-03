@@ -1,7 +1,7 @@
 # **KaShell**
 
 ***KaShell*** is a miniature shell implementation. This shell can create tasks 
-running programs in Linux Jobs and Process. Programs can be executed through pipes, 
+that run programs in Linux Jobs and Process. Programs can be executed through pipes, 
 which allows communication between processes on the pipiline. 
 
 *Updated: 3 Sep 2021*
