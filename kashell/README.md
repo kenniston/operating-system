@@ -41,7 +41,7 @@ $ ./bootstrap
 $ make
 ```
 ```sh
-$ make install
+$ sudo make install
 ```
 
 ---
