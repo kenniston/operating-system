@@ -1,4 +1,4 @@
-/* kashel.c - KaShell, the miniature-shell. */
+/* jobctl.c - functions to manager the jobs created from kashell tasks. */
 
 /* Copyright (C) Kenniston Arraes Bonfim.
 
@@ -16,16 +16,5 @@
 
    GNU General Public License - <http://www.gnu.org/licenses/>.
 */
-#include <stdio.h>
-#include "cmd.h"
 
-void print_welcome() {
-    printf("Welcome to the KaShell.\n");
-}
-
-int main() {
-    print_welcome();
-    run_shell();
-
-	return 0;
-}
+#include "jobctl.h"
