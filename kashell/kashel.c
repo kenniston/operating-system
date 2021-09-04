@@ -17,9 +17,13 @@
    GNU General Public License - <http://www.gnu.org/licenses/>.
 */
 #include <stdio.h>
+#include <stdlib.h>
 #include "cmd.h"
 
+#define clrscr() printf("\e[1;1H\e[2J")
+
 void print_welcome() {
+    clrscr();
     printf("Welcome to the KaShell.\n");
 }
 
@@ -27,5 +31,5 @@ int main() {
     print_welcome();
     run_shell();
 
-	return 0;
+	return EXIT_SUCCESS;
 }

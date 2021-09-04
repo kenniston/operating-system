@@ -17,9 +17,13 @@
 
    GNU General Public License - <http://www.gnu.org/licenses/>.
 */
+#include <ctype.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
+#include <termios.h>
 #include <stdbool.h>
 #include <sys/types.h>
 #include <ctype.h>
@@ -28,6 +32,8 @@
 #define OUT_SUBCMD ">"
 #define IN_SUBCMD "<"
 #define QUIT_CMD "quit"
+
+struct termios orig_termios;    // Original termios configuration.
 
 /* Remove all white space from the beginning and end of the string.. */
 void str_trim(char * s) {
@@ -151,10 +157,25 @@ void free_pipeline(task_t *tasks) {
     }
 }
 
+/* Disable input raw mode in keyboard */
+void disableRawMode() {
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
+}
+
+/* Enable input raw mode in keyboard */
+void enableRawMode() {
+    tcgetattr(STDIN_FILENO, &orig_termios);
+    atexit(disableRawMode);
+    struct termios raw = orig_termios;
+    raw.c_lflag &= ~(ECHOCTL);
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+}
+
 /* This provides a Shell command line loop. All user supplied
    data are trimmed (to remove white spaces) before being
    processed by the command line parser function. */
 void run_shell() {
+    //enableRawMode();
     do {
         printf("cmd> ");
 
@@ -174,4 +195,6 @@ void run_shell() {
         free_pipeline(tasks);
         free(cmd);
     } while (true);
+
+    printf("\nGood bye!\n\n");
 }
