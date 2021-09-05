@@ -26,8 +26,14 @@
 #include <termios.h>
 #include <stdbool.h>
 #include <sys/types.h>
-#include <ctype.h>
 #include "cmd.h"
+
+#if !defined(__linux__)
+#ifndef _ULONG
+typedef unsigned long ulong;
+#define _ULONG
+#endif
+#endif
 
 #define OUT_SUBCMD ">"
 #define IN_SUBCMD "<"
