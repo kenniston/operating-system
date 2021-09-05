@@ -17,16 +17,16 @@
 
    GNU General Public License - <http://www.gnu.org/licenses/>.
 */
-#include <ctype.h>
 #include <errno.h>
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
 #include <termios.h>
 #include <stdbool.h>
 #include <sys/types.h>
 #include "cmd.h"
+#include "jobctl.h"
 
 #if !defined(__linux__)
 #ifndef _ULONG
@@ -41,7 +41,7 @@ typedef unsigned long ulong;
 
 struct termios orig_termios;    // Original termios configuration.
 
-/* Remove all white space from the beginning and end of the string.. */
+/* Remove all white space from the beginning and end of the string. */
 void str_trim(char * s) {
     char *start = s;
     ulong length = strlen(start);
@@ -55,6 +55,37 @@ void str_trim(char * s) {
     memmove(s, start, length + 1);
 }
 
+/* This function validate the tasks in the pipeline. */
+bool validade_tasks(task_t *tasks) {
+    char msg[128];
+    task_t *next;
+    task_t *cur = tasks;
+    int count = 1;
+    while (cur) {
+        next = cur->next;
+        // Check the parameters in early tasks. Output file must be on last task.
+        if (strcmp(cur->outfile, "") != 0 && next != NULL) {
+            sprintf(msg, "Output file in task %d. The output to file must be on last task on pipeline", count);
+            errno = EINVAL;
+            perror(msg);
+            return false;
+        }
+
+        // Check input parameters. Input with files cannot have other parameters.
+        if (strcmp(cur->infile, "") != 0 && cur->params[0] != NULL) {
+            sprintf(msg, "Too many parameter in task %d. Task with input file cannot have other parameters", count);
+            errno = EINVAL;
+            perror(msg);
+            return false;
+        }
+
+        cur = next;
+        count++;
+    }
+
+    return true;
+}
+
 /* This function parses the command line parameters
    and updates the corresponding field in the given
    task. */
@@ -62,37 +93,26 @@ void parse_cmd_params(task_t *task, char *params) {
     char *paramstr = calloc(1, strlen(params) + 1);
     strcpy(paramstr, params);
 
-    // check for output character in params
+    // check for output character in params.
     char *out = strstr(paramstr, OUT_SUBCMD);
-    long outidx = -1;
     if (out != NULL) {
-        outidx = out - paramstr;
         strncpy(task->outfile, out + sizeof(OUT_SUBCMD), sizeof(task->outfile));
         str_trim(task->outfile);
     }
 
-    // check for input character in params
+    // check for input character in params.
     char *in = strstr(paramstr, IN_SUBCMD);
-    long inidx = -1;
-    if (out != NULL) {
-        inidx = in - paramstr;
-        strncpy(task->infile, out + sizeof(IN_SUBCMD), sizeof(task->infile));
+    if (in != NULL) {
+        strncpy(task->infile, in + sizeof(IN_SUBCMD), sizeof(task->infile));
         str_trim(task->infile);
     }
 
-    // get command from params
-    ulong length = out ? strlen(out) : 0;
-    char *cmd = calloc(1, strlen(paramstr) - length + 1);
-    strncpy(cmd, paramstr, strlen(paramstr) - length);
-    str_trim(cmd);
-
-    // extract command parameters
+    // extract command parameters.
     char *param;
     int count = 0;
-    while ((param = strsep(&cmd, " "))) {
+    while ((param = strsep(&paramstr, " "))) {
         if (strcmp(task->cmd, "") == 0) {
             strcpy(task->cmd, param);
-            continue;
         }
         task->params[count++] = param;
     }
@@ -124,7 +144,8 @@ task_t* create_pipeline(char *str) {
             return NULL;
         }
     }
-    return head;
+
+    return validade_tasks(head) ? head : NULL;
 }
 
 /* This function prints the pipeline data to stdout. */
@@ -163,25 +184,10 @@ void free_pipeline(task_t *tasks) {
     }
 }
 
-/* Disable input raw mode in keyboard */
-void disableRawMode() {
-    tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
-}
-
-/* Enable input raw mode in keyboard */
-void enableRawMode() {
-    tcgetattr(STDIN_FILENO, &orig_termios);
-    atexit(disableRawMode);
-    struct termios raw = orig_termios;
-    raw.c_lflag &= ~(ECHOCTL);
-    tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
-}
-
 /* This provides a Shell command line loop. All user supplied
    data are trimmed (to remove white spaces) before being
    processed by the command line parser function. */
 void run_shell() {
-    //enableRawMode();
     do {
         printf("cmd> ");
 
@@ -196,8 +202,8 @@ void run_shell() {
 
         task_t *tasks = create_pipeline(cmd);
         if (tasks == NULL) continue;
-        print_pipeline(tasks);
-
+        run_pipeline(tasks);
+        //print_pipeline(tasks);
         free_pipeline(tasks);
         free(cmd);
     } while (true);

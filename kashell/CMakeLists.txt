@@ -10,3 +10,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 add_executable(kashell kashel.c cmd.c cmd.h jobctl.c jobctl.h)
 add_executable(ppgid syscall-samples/ppgid.c)
+add_executable(execvp syscall-samples/execvp.c)
+add_executable(pipe syscall-samples/pipe.c)
+add_executable(pipeout syscall-samples/pipeout.c)

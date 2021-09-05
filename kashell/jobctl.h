@@ -20,4 +20,8 @@
 #ifndef KASHELL_JOBCTL_H
 #define KASHELL_JOBCTL_H
 
+#include "cmd.h"
+
+void run_pipeline(task_t *tasks);
+
 #endif //KASHELL_JOBCTL_H
