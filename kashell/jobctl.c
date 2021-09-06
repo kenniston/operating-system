@@ -24,6 +24,9 @@
 #include <sys/wait.h>
 #include "jobctl.h"
 
+int process_count = 0;      // Process count in pipeline.
+pid_t *pids;                // Process list to prevent.
+
 /* This function stops the shell process and waits for any
    child process. */
 void wait_child_process() {
@@ -62,19 +65,28 @@ void run_single_process(task_t *task) {
     }
 }
 
+void run_process_pipeline(task_t *tasks) {
+    task_t *cur = tasks;
+    process_count = 0;
+    while (cur) {
+        process_count++;
+        cur = cur->next;
+    }
+    pids = malloc(sizeof(int) * process_count);
+    for (int i = 0; i < process_count; i++){
+
+    }
+}
+
 /* This function runs the task pipeline. Each task
    will run in a new child process. Communication
    between the processes uses the unidirectional pipe.
    If there is only one task, no channel (pipe) will be
    created. */
 void run_pipeline(task_t *tasks) {
-    task_t *next;
-    task_t *cur = tasks;
-
-    if (cur->next == NULL) { // Run a single task in the pipeline.
-        run_single_process(cur);
-    } else {
-        // Run tasks in the pipeline one by one.
-
+    if (tasks->next == NULL) { // Run a single task in the pipeline.
+        run_single_process(tasks);
+    } else { // Run tasks in the pipeline one by one.
+        run_process_pipeline(tasks);
     }
 }
