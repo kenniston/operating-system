@@ -24,9 +24,6 @@
 #include <sys/wait.h>
 #include "jobctl.h"
 
-int process_count = 0;      // Process count in pipeline.
-pid_t *pids;                // Process list to prevent.
-
 /* This function stops the shell process and waits for any
    child process. */
 void wait_child_process() {
@@ -51,7 +48,13 @@ void wait_child_process() {
 }
 
 /* This function creates a child process to execute the command
-   provided by task parameter. */
+   provided by task parameter.
+   Warn: to debug the child process, set a breakpoint before the
+         fork and run the following commands in the gdb console:
+            1) set follow-fork-mode child;
+            2) set detach-on-fork off;
+            3) Continue debugging.
+*/
 void run_single_process(task_t *task) {
     // Create a task child process.
     pid_t child_pid = fork();
@@ -67,14 +70,14 @@ void run_single_process(task_t *task) {
 
 void run_process_pipeline(task_t *tasks) {
     task_t *cur = tasks;
-    process_count = 0;
     while (cur) {
-        process_count++;
-        cur = cur->next;
-    }
-    pids = malloc(sizeof(int) * process_count);
-    for (int i = 0; i < process_count; i++){
+        pid_t child_pid = fork();
+        if (child_pid == 0) { // child process
 
+        } else { // kashell process
+            wait_child_process();
+        }
+        cur = cur->next;
     }
 }
 

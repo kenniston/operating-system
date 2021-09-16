@@ -21,19 +21,20 @@
 #ifndef KASHELL_CMD_H
 #define KASHELL_CMD_H
 
-#define MAX_CMD_SIZE 512        // Max command line length (program to run).
-#define MAX_PARAMS 255          // Max parameter length (parameters to a program).
-#define MAX_OUT_FILE_PATH 255   // Max length for the output file path.
-#define MAX_IN_FILE_PATH 255    // Max length for the input file path.
+#define MAX_CMD_SIZE 512                // Max command line length (program to run).
+#define MAX_PARAMS 255                  // Max parameter length (program's parameters).
+#define MAX_OUT_FILE_PATH 255           // Max length for the output file path.
+#define MAX_IN_FILE_PATH 255            // Max length for the input file path.
 
 /* Linked list for tasks on the command line. The tasks are created
   by a command line parsing function and processed by Job Control. */
 typedef struct task {
-    struct task *next;
-    char cmd[MAX_CMD_SIZE];
-    char *params[MAX_PARAMS];
-    char outfile[MAX_OUT_FILE_PATH];
-    char infile[MAX_IN_FILE_PATH];
+    int pids[2];                        // PIDs for process communication.
+    struct task *next;                  // Next task in the pipeline.
+    char cmd[MAX_CMD_SIZE];             // Task command line (program to run).
+    char *params[MAX_PARAMS];           // Program's parameters.
+    char outfile[MAX_OUT_FILE_PATH];    // Output file name (program output to file).
+    char infile[MAX_IN_FILE_PATH];      // Input file name (program input params from file).
 } task_t;
 
 void run_shell();
