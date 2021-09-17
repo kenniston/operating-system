@@ -24,7 +24,7 @@
 
 void print_welcome() {
     clrscr();
-    printf("Welcome to the KaShell.\n");
+    printf("Welcome to the KaShell.\nType 'quit' to exit the shell.\n");
 }
 
 int main() {

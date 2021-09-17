@@ -43,6 +43,7 @@ struct termios orig_termios;    // Original termios configuration.
 
 /* Remove all white space from the beginning and end of the string. */
 void str_trim(char * s) {
+    if (s == NULL) return;
     char *start = s;
     ulong length = strlen(start);
 
@@ -98,6 +99,7 @@ void parse_cmd_params(task_t *task, char *params) {
     if (out != NULL) {
         strncpy(task->outfile, out + sizeof(OUT_SUBCMD), sizeof(task->outfile));
         str_trim(task->outfile);
+        *out = 0;
     }
 
     // check for input character in params.
@@ -110,6 +112,7 @@ void parse_cmd_params(task_t *task, char *params) {
     // extract command parameters.
     char *param;
     int count = 0;
+    str_trim(paramstr);
     while ((param = strsep(&paramstr, " "))) {
         if (strcmp(task->cmd, "") == 0) {
             strcpy(task->cmd, param);
@@ -194,8 +197,10 @@ void run_shell() {
         char *cmd = 0;
         size_t cmdlen = 0;
         getline(&cmd, &cmdlen, stdin);
-        str_trim(cmd);
 
+        if (cmd == NULL) continue;
+
+        str_trim(cmd);
         if (strcasecmp(cmd, QUIT_CMD) == 0) {
             break;
         }

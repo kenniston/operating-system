@@ -29,7 +29,6 @@
 /* Linked list for tasks on the command line. The tasks are created
   by a command line parsing function and processed by Job Control. */
 typedef struct task {
-    int pids[2];                        // PIDs for process communication.
     struct task *next;                  // Next task in the pipeline.
     char cmd[MAX_CMD_SIZE];             // Task command line (program to run).
     char *params[MAX_PARAMS];           // Program's parameters.

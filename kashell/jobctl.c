@@ -17,6 +17,7 @@
    GNU General Public License - <http://www.gnu.org/licenses/>.
 */
 #include <stdio.h>
+#include <errno.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,20 +30,20 @@
 void wait_child_process() {
     int wstatus;
 
-    if (wait(&wstatus) == -1) {
+    if (wait(&wstatus) == -1 && errno != EINTR) {
         perror("[kashel] Error waiting child process.");
         return;
     }
 
 #ifdef DEBUG
     if (WIFEXITED(wstatus)) {
-        printf("[kashell] Exited, status=%d.\n", WEXITSTATUS(wstatus));
+        printf("[kashell] Child Exited, status=%d.\n", WEXITSTATUS(wstatus));
     } else if (WIFSIGNALED(wstatus)) {
-        printf("[kashell] Killed by signal %d.\n", WTERMSIG(wstatus));
+        printf("[kashell] Child Killed by signal %d.\n", WTERMSIG(wstatus));
     } else if (WIFSTOPPED(wstatus)) {
-        printf("[kashell] Stopped by signal %d.\n", WSTOPSIG(wstatus));
+        printf("[kashell] Child Stopped by signal %d.\n", WSTOPSIG(wstatus));
     } else if (WIFCONTINUED(wstatus)) {
-        printf("[kashell] Continued.\n");
+        printf("[kashell] Child Continued.\n");
     }
 #endif
 }
