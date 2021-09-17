@@ -196,11 +196,16 @@ void run_shell() {
 
         char *cmd = 0;
         size_t cmdlen = 0;
-        getline(&cmd, &cmdlen, stdin);
+        do {
+            getline(&cmd, &cmdlen, stdin);
+            if (cmd == NULL) continue;
 
-        if (cmd == NULL) continue;
+            str_trim(cmd);
+            if (strlen(cmd) > 0){
+                break;
+            }
+        } while (true);
 
-        str_trim(cmd);
         if (strcasecmp(cmd, QUIT_CMD) == 0) {
             break;
         }

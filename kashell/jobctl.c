@@ -23,6 +23,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <sys/wait.h>
+#include <sys/file.h>
 #include "jobctl.h"
 
 /* This function stops the shell process and waits for any
@@ -60,10 +61,21 @@ void run_single_process(task_t *task) {
     // Create a task child process.
     pid_t child_pid = fork();
     if (child_pid == 0) { // child process
+        bool outfile = strcmp(task->outfile, "") != 0;
+        int fd;
+        if (outfile) {
+            fd = open(task->outfile, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+            if (fd == -1) {
+                perror("Error creating the output file.");
+            } else {
+                dup2(fd, STDOUT_FILENO);
+            }
+        }
         int ret = execvp(task->cmd, task->params);
         if (ret != 0) {
             perror("Error on command:");
         }
+        if (outfile) close(fd);
     } else { // kashell process
         wait_child_process();
     }
