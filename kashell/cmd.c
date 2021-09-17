@@ -73,12 +73,12 @@ bool validade_tasks(task_t *tasks) {
         }
 
         // Check input parameters. Input with files cannot have other parameters.
-        if (strcmp(cur->infile, "") != 0 && cur->params[0] != NULL) {
+        /*if (strcmp(cur->infile, "") != 0 && cur->params[1] != NULL) {
             sprintf(msg, "Too many parameter in task %d. Task with input file cannot have other parameters", count);
             errno = EINVAL;
             perror(msg);
             return false;
-        }
+        }*/
 
         cur = next;
         count++;
@@ -107,6 +107,7 @@ void parse_cmd_params(task_t *task, char *params) {
     if (in != NULL) {
         strncpy(task->infile, in + sizeof(IN_SUBCMD), sizeof(task->infile));
         str_trim(task->infile);
+        *in = 0;
     }
 
     // extract command parameters.

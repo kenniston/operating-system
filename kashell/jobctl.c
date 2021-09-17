@@ -49,6 +49,40 @@ void wait_child_process() {
 #endif
 }
 
+/* This function creates file descriptors for input and
+   output file for the task. Also, it changes the standard
+   output and input file descriptor in the process. */
+int * configure_stdinout(task_t *task) {
+    int *fd = calloc(1, sizeof(int) * 2);
+    bool outfile = strcmp(task->outfile, "") != 0;
+    bool infile = strcmp(task->infile, "") != 0;
+
+    if (outfile) {
+        fd[0] = open(task->outfile, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+        if (fd[0] == -1) {
+            perror("Error creating the output file.");
+        } else {
+            int ret = dup2(fd[0], STDOUT_FILENO);
+            if (ret == -1) {
+                perror("Error changing default output file descriptor");
+            }
+        }
+    }
+
+    if (infile) {
+        fd[1] = open(task->infile, O_RDONLY);
+        if (fd[1] == -1) {
+            perror("Error reading the input file.");
+        } else {
+            int ret = dup2(fd[1], STDIN_FILENO);
+            if (ret == -1) {
+                perror("Error changing default input file descriptor");
+            }
+        }
+    }
+    return fd;
+}
+
 /* This function creates a child process to execute the command
    provided by task parameter.
    Warn: to debug the child process, set a breakpoint before the
@@ -61,21 +95,13 @@ void run_single_process(task_t *task) {
     // Create a task child process.
     pid_t child_pid = fork();
     if (child_pid == 0) { // child process
-        bool outfile = strcmp(task->outfile, "") != 0;
-        int fd;
-        if (outfile) {
-            fd = open(task->outfile, O_WRONLY | O_CREAT | O_TRUNC, 0666);
-            if (fd == -1) {
-                perror("Error creating the output file.");
-            } else {
-                dup2(fd, STDOUT_FILENO);
-            }
-        }
+        int *fd = configure_stdinout(task);
         int ret = execvp(task->cmd, task->params);
         if (ret != 0) {
             perror("Error on command:");
         }
-        if (outfile) close(fd);
+        // Close files in child process if execvp fails.
+
     } else { // kashell process
         wait_child_process();
     }
