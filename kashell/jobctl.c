@@ -109,7 +109,19 @@ void run_single_process(task_t *task) {
     }
 }
 
-// ls -la | grep kashell | wc
+/* This function creates a chained task execution. Ex.:
+   ls -la | grep kashell
+   ls -la | grep kashell > outfile.txt
+   echo test | wc
+   ps -aux | grep systemd
+   ps -aux | grep systemd | wc -l
+
+   Warn: to debug the child process, set a breakpoint before the
+         fork and run the following commands in the gdb console:
+            1) set follow-fork-mode child;
+            2) set detach-on-fork off;
+            3) Continue debugging.
+*/
 void run_process_pipeline(task_t *tasks) {
     task_t *cur = tasks;
     int index = 0;
