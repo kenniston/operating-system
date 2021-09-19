@@ -64,7 +64,7 @@ void configure_stdinout(task_t *task) {
         } else {
             int ret = dup2(fd[0], STDOUT_FILENO);
             if (ret == -1) {
-                perror("Error changing default output file descriptor");
+                perror("Error changing default output file descriptor.");
             }
             close(fd[0]);
         }
@@ -77,7 +77,7 @@ void configure_stdinout(task_t *task) {
         } else {
             int ret = dup2(fd[1], STDIN_FILENO);
             if (ret == -1) {
-                perror("Error changing default input file descriptor");
+                perror("Error changing default input file descriptor.");
             }
             close(fd[1]);
         }
@@ -132,8 +132,16 @@ void run_process_pipeline(task_t *tasks) {
             // file descriptor to the child process.
             if (cur->next != NULL) {
                 if (dup2(inoutfd[1], STDOUT_FILENO) == -1) {
-                    perror("Error setting STDOUT for child process");
+                    perror("Error setting STDOUT for child process.");
                 }
+            } else {
+                bool infile = strcmp(cur->infile, "") != 0;
+                if (infile) {
+                    errno = EINVAL;
+                    perror("Input file is not allowed for chained tasks.");
+                    return;
+                }
+                configure_stdinout(cur);
             }
             close(inoutfd[0]);
             close(inoutfd[1]);
@@ -141,7 +149,7 @@ void run_process_pipeline(task_t *tasks) {
             // Reads from STDOUT after the first command in the pipeline.
             if (index > 0) {
                 if (dup2(lastfd[0], STDIN_FILENO) == -1) {
-                    perror("Error setting STDIN for child process");
+                    perror("Error setting STDIN for child process.");
                 }
             }
             close(lastfd[0]);
