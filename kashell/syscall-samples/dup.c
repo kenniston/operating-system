@@ -18,9 +18,8 @@ int main(int argc, char **argv) {
     if (r2 == -1) {
         perror("ERROR OUTPUT");
     }
-
-    execvp("grep", grep_args);
-
     close(in);
     close(out);
+
+    execvp("grep", grep_args);
 }

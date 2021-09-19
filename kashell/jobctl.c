@@ -52,7 +52,7 @@ void wait_child_process() {
 /* This function creates file descriptors for input and
    output file for the task. Also, it changes the standard
    output and input file descriptor in the process. */
-int * configure_stdinout(task_t *task) {
+void configure_stdinout(task_t *task) {
     int *fd = calloc(1, sizeof(int) * 2);
     bool outfile = strcmp(task->outfile, "") != 0;
     bool infile = strcmp(task->infile, "") != 0;
@@ -66,6 +66,7 @@ int * configure_stdinout(task_t *task) {
             if (ret == -1) {
                 perror("Error changing default output file descriptor");
             }
+            close(fd[0]);
         }
     }
 
@@ -78,9 +79,9 @@ int * configure_stdinout(task_t *task) {
             if (ret == -1) {
                 perror("Error changing default input file descriptor");
             }
+            close(fd[1]);
         }
     }
-    return fd;
 }
 
 /* This function creates a child process to execute the command
@@ -95,13 +96,14 @@ void run_single_process(task_t *task) {
     // Create a task child process.
     pid_t child_pid = fork();
     if (child_pid == 0) { // child process
-        int *fd = configure_stdinout(task);
+        // Configure input and output files.
+        configure_stdinout(task);
+
+        // Change the image on the child process.
         int ret = execvp(task->cmd, task->params);
         if (ret != 0) {
             perror("Error on command:");
         }
-        // Close files in child process if execvp fails.
-
     } else { // kashell process
         wait_child_process();
     }
@@ -109,14 +111,64 @@ void run_single_process(task_t *task) {
 
 void run_process_pipeline(task_t *tasks) {
     task_t *cur = tasks;
+    int index = 0;
+    // Creates the pipe file descriptors for interprocess communication.
+    // The inoutfd[0] is the reader and inoutfd[1] is the writter.
+    int inoutfd[2];
+    if (pipe(inoutfd) == -1) {
+        perror("Error creating task pipe.");
+        return;
+    }
+    // Perform the tasks.
     while (cur) {
+        // Create a task child process.
         pid_t child_pid = fork();
         if (child_pid == 0) { // child process
+            // Closes the write file descriptor in the child process
+            // if this task is the last one. Otherwise, set the writer
+            // file descriptor to the child process.
+            if (cur->next == NULL) {
+                close(inoutfd[1]);
+            } else {
+                if (dup2(inoutfd[1], STDOUT_FILENO) == -1) {
+                    perror("Error setting STDOUT for child process");
+                }
+            }
 
+            // Reads from STDOUT after the first command in the pipeline.
+            if (index > 0) {
+                if (dup2(inoutfd[0], STDIN_FILENO) == -1) {
+                    perror("Error setting STDIN for child process");
+                }
+            }
+
+            // Change the image on the child process.
+            int ret = execvp(cur->cmd, cur->params);
+            if (ret != 0) {
+                perror("Error on command:");
+            }
         } else { // kashell process
             wait_child_process();
+
+            // Closes read file descriptor in the parent process (shell).
+            close(inoutfd[0]);
+
+            // Configure next task if its exists.
+            index++;
+            cur = cur->next;
+            if (cur != NULL) {
+                // Backup the last writer file descriptor.
+                int outfd = inoutfd[1];
+
+                // Create a new file descriptor pair for the next command.
+                if (pipe(inoutfd) == -1) {
+                    perror("Error creating task pipe.");
+                    return;
+                }
+                // Change de read file descriptor to the writer one.
+                inoutfd[0] = outfd;
+            }
         }
-        cur = cur->next;
     }
 }
 
