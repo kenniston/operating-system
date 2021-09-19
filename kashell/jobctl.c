@@ -28,10 +28,10 @@
 
 /* This function stops the shell process and waits for any
    child process. */
-void wait_child_process() {
+void wait_child_process(int pid) {
     int wstatus;
 
-    if (wait(&wstatus) == -1 && errno != EINTR) {
+    if (waitpid(pid, &wstatus, 0) == -1 && errno != EINTR) {
         perror("[kashel] Error waiting child process.");
         return;
     }
@@ -105,13 +105,16 @@ void run_single_process(task_t *task) {
             perror("Error on command:");
         }
     } else { // kashell process
-        wait_child_process();
+        wait_child_process(child_pid);
     }
 }
 
+// ls -la | grep kashell | wc
 void run_process_pipeline(task_t *tasks) {
     task_t *cur = tasks;
     int index = 0;
+    int lastfd[2];
+
     // Creates the pipe file descriptors for interprocess communication.
     // The inoutfd[0] is the reader and inoutfd[1] is the writter.
     int inoutfd[2];
@@ -127,47 +130,54 @@ void run_process_pipeline(task_t *tasks) {
             // Closes the write file descriptor in the child process
             // if this task is the last one. Otherwise, set the writer
             // file descriptor to the child process.
-            if (cur->next == NULL) {
-                close(inoutfd[1]);
-            } else {
+            if (cur->next != NULL) {
                 if (dup2(inoutfd[1], STDOUT_FILENO) == -1) {
                     perror("Error setting STDOUT for child process");
                 }
             }
+            close(inoutfd[0]);
+            close(inoutfd[1]);
 
             // Reads from STDOUT after the first command in the pipeline.
             if (index > 0) {
-                if (dup2(inoutfd[0], STDIN_FILENO) == -1) {
+                if (dup2(lastfd[0], STDIN_FILENO) == -1) {
                     perror("Error setting STDIN for child process");
                 }
             }
+            close(lastfd[0]);
+            close(lastfd[1]);
 
             // Change the image on the child process.
             int ret = execvp(cur->cmd, cur->params);
             if (ret != 0) {
                 perror("Error on command:");
             }
-        } else { // kashell process
-            wait_child_process();
+        }
+        // kashell process
+        printf("Waiting for PID: %d\n", child_pid);
+        wait_child_process(child_pid);
 
-            // Closes read file descriptor in the parent process (shell).
-            close(inoutfd[0]);
+        // Configure next task if its exists.
+        index++;
+        cur = cur->next;
+        if (cur != NULL) {
+            // Closes file descriptors in the parent process (shell).
+            close(lastfd[0]);
+            close(lastfd[1]);
 
-            // Configure next task if its exists.
-            index++;
-            cur = cur->next;
-            if (cur != NULL) {
-                // Backup the last writer file descriptor.
-                int outfd = inoutfd[1];
+            // Backup the last file descriptors
+            lastfd[0] = inoutfd[0];
+            lastfd[1] = inoutfd[1];
 
-                // Create a new file descriptor pair for the next command.
-                if (pipe(inoutfd) == -1) {
-                    perror("Error creating task pipe.");
-                    return;
-                }
-                // Change de read file descriptor to the writer one.
-                inoutfd[0] = outfd;
+            // Create a new file descriptor pair for the next command.
+            if (pipe(inoutfd) == -1) {
+                perror("Error creating task pipe.");
+                return;
             }
+        } else {
+            // Closes file descriptors in the parent process (shell).
+            close(lastfd[0]);
+            close(lastfd[1]);
         }
     }
 }
