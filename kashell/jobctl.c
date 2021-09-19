@@ -153,18 +153,17 @@ void run_process_pipeline(task_t *tasks) {
                 perror("Error on command:");
             }
         }
-        // kashell process
-        printf("Waiting for PID: %d\n", child_pid);
+        // Closes the last file descriptors. If the descriptors
+        // remain open, the child process will be blocked forever.
+        close(lastfd[0]);
+        close(lastfd[1]);
+
         wait_child_process(child_pid);
 
         // Configure next task if its exists.
         index++;
         cur = cur->next;
         if (cur != NULL) {
-            // Closes file descriptors in the parent process (shell).
-            close(lastfd[0]);
-            close(lastfd[1]);
-
             // Backup the last file descriptors
             lastfd[0] = inoutfd[0];
             lastfd[1] = inoutfd[1];
@@ -174,10 +173,6 @@ void run_process_pipeline(task_t *tasks) {
                 perror("Error creating task pipe.");
                 return;
             }
-        } else {
-            // Closes file descriptors in the parent process (shell).
-            close(lastfd[0]);
-            close(lastfd[1]);
         }
     }
 }
