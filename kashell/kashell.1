@@ -1,0 +1,37 @@
+.\" Manpage for kashell.
+.\" Contact kenniston.bonfim@ga.ita.br to correct errors or typos.
+.TH kashell 1 "06 Oct 2021" "1.0" "kashell man page"
+
+.SH NAME
+.B kashell \- A miniature shell implementation.
+
+.SH SYNOPSIS
+kashell
+
+.SH DESCRIPTION
+.B kashell
+can create tasks that run programs in Linux Jobs and Process.
+Programs can be executed through pipes, which allows communication
+between processes on the pipiline.
+Below are some example commands that kashell can run:
+
+.RS
+.nf
+- ./prog par1 par2 parn
+- ls -la
+- cat test.txt | grep 123
+- cat test.txt > out.txt
+- ./prog < in.txt
+.RE
+
+.SH OPTIONS
+The kashell does not take any options.
+
+.SH SEE ALSO
+bash(1)
+
+.SH BUGS
+No known bugs.
+
+.SH AUTHOR
+Kenniston Arraes Bonfim (kenniston.bonfim@ga.ita.br
