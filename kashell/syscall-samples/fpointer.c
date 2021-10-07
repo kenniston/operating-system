@@ -20,9 +20,15 @@ int divide(int a) {
 int (*fp)(int);
 
 int main() {
-    fp = sum;
-    int r = fp(2);
-    printf("result: %d \n", r);
+//    fp = sum;
+//    int r = fp(2);
+//    printf("result: %d \n", r);
+
+    int a = 10;
+
+    int *c = &a;
+
+    printf("valor c: %d", *c);
 
     return EXIT_SUCCESS;
 }

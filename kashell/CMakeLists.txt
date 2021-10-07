@@ -15,3 +15,11 @@ add_executable(pipe syscall-samples/pipe.c)
 add_executable(pipeout syscall-samples/pipeout.c)
 add_executable(fpointer syscall-samples/fpointer.c)
 add_executable(dup syscall-samples/dup.c)
+add_executable(strtok syscall-samples/strtok.c)
+add_executable(teste syscall-samples/teste.c)
+
+# file(MAKE_DIRECTORY /usr/local/man/man1)
+install(FILES "${CMAKE_SOURCE_DIR}/kashell.1" DESTINATION /usr/local/man/man1)
+install(FILES ${CMAKE_BINARY_DIR}/kashell DESTINATION /usr/local/bin
+        PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                    GROUP_EXECUTE WORLD_EXECUTE)
