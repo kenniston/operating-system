@@ -60,7 +60,7 @@ Run KaShell:
 $ release/kashell
 ```
 
-To install KaShell:
+To install KaShell and the KaShell Man Page:
 ```sh
 $ sudo cmake --install release
 ```
