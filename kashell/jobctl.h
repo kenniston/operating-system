@@ -22,6 +22,9 @@
 
 #include "cmd.h"
 
+#define PIPE_READ   0
+#define PIPE_WRITE  1
+
 void run_pipeline(task_t *tasks);
 
 #endif //KASHELL_JOBCTL_H

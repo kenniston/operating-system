@@ -21,10 +21,10 @@
 #ifndef KASHELL_CMD_H
 #define KASHELL_CMD_H
 
-#define MAX_CMD_SIZE 512                // Max command line length (program to run).
-#define MAX_PARAMS 255                  // Max parameter length (program's parameters).
-#define MAX_OUT_FILE_PATH 255           // Max length for the output file path.
-#define MAX_IN_FILE_PATH 255            // Max length for the input file path.
+#define MAX_CMD_SIZE        512         // Max command line length (program to run).
+#define MAX_PARAMS          255         // Max parameter length (program's parameters).
+#define MAX_OUT_FILE_PATH   255         // Max length for the output file path.
+#define MAX_IN_FILE_PATH    255         // Max length for the input file path.
 
 /* Linked list for tasks on the command line. The tasks are created
   by a command line parsing function and processed by Job Control. */

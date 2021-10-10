@@ -161,7 +161,7 @@ void run_process_pipeline(task_t *tasks) {
             // if this task is the last one. Otherwise, set the writer
             // file descriptor to the child process.
             if (cur->next != NULL) {
-                if (dup2(inoutfd[1], STDOUT_FILENO) == -1) {
+                if (dup2(inoutfd[PIPE_WRITE], STDOUT_FILENO) == -1) {
                     perror("Error setting STDOUT for child process.");
                 }
             } else {
@@ -173,17 +173,17 @@ void run_process_pipeline(task_t *tasks) {
                 }
                 configure_stdinout(cur);
             }
-            close(inoutfd[0]);
-            close(inoutfd[1]);
+            close(inoutfd[PIPE_READ]);
+            close(inoutfd[PIPE_WRITE]);
 
             // Reads from STDOUT after the first command in the pipeline.
             if (index > 0) {
-                if (dup2(lastfd[0], STDIN_FILENO) == -1) {
+                if (dup2(lastfd[PIPE_READ], STDIN_FILENO) == -1) {
                     perror("Error setting STDIN for child process.");
                 }
             }
-            close(lastfd[0]);
-            close(lastfd[1]);
+            close(lastfd[PIPE_READ]);
+            close(lastfd[PIPE_WRITE]);
 
             // Change the image on the child process.
             int ret = execvp(cur->cmd, cur->params);
@@ -201,8 +201,8 @@ void run_process_pipeline(task_t *tasks) {
 
         // Closes the last file descriptors. If the descriptors
         // remain open, the child process will be blocked forever.
-        close(lastfd[0]);
-        close(lastfd[1]);
+        close(lastfd[PIPE_READ]);
+        close(lastfd[PIPE_WRITE]);
 
         wait_child_process(child_pid);
 
@@ -211,8 +211,8 @@ void run_process_pipeline(task_t *tasks) {
         cur = cur->next;
         if (cur != NULL) {
             // Backup the last file descriptors
-            lastfd[0] = inoutfd[0];
-            lastfd[1] = inoutfd[1];
+            lastfd[PIPE_READ] = inoutfd[PIPE_READ];
+            lastfd[PIPE_WRITE] = inoutfd[PIPE_WRITE];
 
             // Create a new file descriptor pair for the next command.
             if (pipe(inoutfd) == -1) {
