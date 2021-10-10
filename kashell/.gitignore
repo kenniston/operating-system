@@ -7,3 +7,4 @@ cmake-build-release
 CMakeFiles
 release
 CMakeCache.txt
+syscall-samples/test
