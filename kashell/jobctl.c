@@ -26,6 +26,8 @@
 #include <sys/file.h>
 #include "jobctl.h"
 
+#define CHANGE_DIR_CMD "cd"
+
 /* This function stops the shell process and waits for any
    child process. */
 void wait_child_process(int pid) {
@@ -229,6 +231,10 @@ void run_process_pipeline(task_t *tasks) {
    If there is only one task, no channel (pipe) will be
    created. */
 void run_pipeline(task_t *tasks) {
+    if (strcasecmp(tasks->cmd, CHANGE_DIR_CMD) == 0) {
+        chdir(tasks->params[1]);
+        return;
+    }
     if (tasks->next == NULL) { // Run a single task in the pipeline.
         run_single_process(tasks);
     } else { // Run tasks in the pipeline one by one.

@@ -118,7 +118,7 @@ void parse_cmd_params(task_t *task, char *params) {
         if (strcmp(task->cmd, "") == 0) {
             strcpy(task->cmd, param);
         }
-        task->params[count++] = param;
+        task->params[count++] = param; // FIXME: COPY STR
     }
 }
 
