@@ -1,4 +1,4 @@
-/* kashel.c - KaShell, the miniature-shell. */
+/* shutil.h - shell util functions. */
 
 /* Copyright (C) Kenniston Arraes Bonfim.
 
@@ -16,20 +16,13 @@
 
    GNU General Public License - <http://www.gnu.org/licenses/>.
 */
-#include <stdio.h>
-#include <stdlib.h>
-#include "cmd.h"
+#ifndef KASHELL_SHUTIL_H
+#define KASHELL_SHUTIL_H
 
-#define clrscr() printf("\e[1;1H\e[2J")
+/* Remove all white space from the beginning and end of the string. */
+void str_trim(char * s);
 
-void print_welcome() {
-    clrscr();
-    printf("Welcome to the KaShell.\nType 'quit' to exit the shell.\n\n");
-}
+/* Get the last string after the token. */
+char* laststr (char* myStr, char token);
 
-int main() {
-    print_welcome();
-    run_shell();
-
-	return EXIT_SUCCESS;
-}
+#endif //KASHELL_SHUTIL_H

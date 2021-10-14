@@ -9,7 +9,7 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 SET(CMAKE_C_FLAGS -pthread)
 
-add_executable(kashell kashel.c cmd.c cmd.h jobctl.c jobctl.h)
+add_executable(kashell kashel.c cmd.c cmd.h jobctl.c jobctl.h shutil.c shutil.h)
 add_executable(ppgid syscall-samples/ppgid.c)
 add_executable(execvp syscall-samples/execvp.c)
 add_executable(pipe syscall-samples/pipe.c)

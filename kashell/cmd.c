@@ -18,15 +18,17 @@
    GNU General Public License - <http://www.gnu.org/licenses/>.
 */
 #include <errno.h>
-#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <termios.h>
 #include <stdbool.h>
-#include <sys/types.h>
+#include <unistd.h>
+#include <pwd.h>
+#include <linux/limits.h>
 #include "cmd.h"
 #include "jobctl.h"
+#include "shutil.h"
 
 #if !defined(__linux__)
 #ifndef _ULONG
@@ -38,23 +40,9 @@ typedef unsigned long ulong;
 #define OUT_SUBCMD ">"
 #define IN_SUBCMD "<"
 #define QUIT_CMD "quit"
+#define DEFAULT_USER "user"
 
 struct termios orig_termios;    // Original termios configuration.
-
-/* Remove all white space from the beginning and end of the string. */
-void str_trim(char * s) {
-    if (s == NULL) return;
-    char *start = s;
-    ulong length = strlen(start);
-
-    while (isspace(start[length - 1])) {
-        start[--length] = 0;
-    }
-    while (*start && isspace(*start)) {
-        ++start, --length;
-    }
-    memmove(s, start, length + 1);
-}
 
 /* This function validate the tasks in the pipeline. */
 bool validade_tasks(task_t *tasks) {
@@ -204,8 +192,21 @@ void free_pipeline(task_t *tasks) {
    data are trimmed (to remove white spaces) before being
    processed by the command line parser function. */
 void run_shell() {
+    char hostname[255];
+    char username[255];
+
+    gethostname(hostname, sizeof(hostname));
+    struct passwd *p = getpwuid(getuid());
+    if (p == NULL) {
+        strcpy(username, DEFAULT_USER);
+    }
+    strcpy(username, p->pw_name);
+
+    char cwd[PATH_MAX];
     do {
-        printf("cmd> ");
+        getcwd(cwd, sizeof(cwd));
+        char *path = laststr(cwd, '/');
+        printf("[%s@%s] %s > ", username, hostname, path);
 
         char *cmd = 0;
         size_t cmdlen = 0;

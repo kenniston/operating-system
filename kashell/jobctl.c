@@ -140,7 +140,7 @@ void run_single_process(task_t *task) {
 void run_process_pipeline(task_t *tasks) {
     task_t *cur = tasks;
     int index = 0;
-    int lastfd[2];
+    int lastfd[2] = {0, 0};
     pid_t pgid = 0;
 
     // Creates the pipe file descriptors for interprocess communication.
@@ -203,8 +203,12 @@ void run_process_pipeline(task_t *tasks) {
 
         // Closes the last file descriptors. If the descriptors
         // remain open, the child process will be blocked forever.
-        close(lastfd[PIPE_READ]);
-        close(lastfd[PIPE_WRITE]);
+        if (lastfd[PIPE_READ] > 0) {
+            close(lastfd[PIPE_READ]);
+        }
+        if (lastfd[PIPE_WRITE] > 0) {
+            close(lastfd[PIPE_WRITE]);
+        }
 
         wait_child_process(child_pid);
 
