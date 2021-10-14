@@ -93,6 +93,7 @@ bool validade_tasks(task_t *tasks) {
 void parse_cmd_params(task_t *task, char *params) {
     char *paramstr = calloc(1, strlen(params) + 1);
     strcpy(paramstr, params);
+    char *original = paramstr;
 
     // check for output character in params.
     char *out = strstr(paramstr, OUT_SUBCMD);
@@ -118,8 +119,11 @@ void parse_cmd_params(task_t *task, char *params) {
         if (strcmp(task->cmd, "") == 0) {
             strcpy(task->cmd, param);
         }
-        task->params[count++] = param; // FIXME: COPY STR
+        task->params[count] = calloc(1, strlen(param) + 1);
+        strcpy(task->params[count], param);
+        count++;
     }
+    free(original);
 }
 
 /* This function create a new command pipeline.
@@ -133,6 +137,8 @@ task_t* create_pipeline(char *str) {
     char *cmdstr = calloc(1, strlen(str) + 1);
 
     strcpy(cmdstr, str);
+    char *original = cmdstr;
+
     while ((cmd = strsep(&cmdstr, "|"))) {
         task_t *t = calloc(1, sizeof(task_t));
         if (t != NULL) {
@@ -148,6 +154,7 @@ task_t* create_pipeline(char *str) {
             return NULL;
         }
     }
+    free(original);
 
     return validade_tasks(head) ? head : NULL;
 }
@@ -183,6 +190,11 @@ void free_pipeline(task_t *tasks) {
     task_t *cur = tasks;
     while (cur) {
         tmp = cur->next;
+        int param_idx = 0;
+        char *p;
+        while ((p = cur->params[param_idx++]) != NULL) {
+            free(p);
+        }
         free(cur);
         cur = tmp;
     }
@@ -208,6 +220,7 @@ void run_shell() {
         } while (true);
 
         if (strcasecmp(cmd, QUIT_CMD) == 0) {
+            free(cmd);
             break;
         }
 
